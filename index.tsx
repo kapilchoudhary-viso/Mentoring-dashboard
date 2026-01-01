@@ -1977,7 +1977,7 @@ const AdminPortal = ({ onBack }: { onBack: () => void }) => {
         <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 scroll-smooth">
           {activeTab === 'dashboard' && (
             <div className="space-y-6">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">{kpis.map((kpi, index) => <KPICard key={index} kpi={kpi} />)}</div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">{kpis.map((kpi, index) => <KPICard key={index} kpi={kpi} />)}</div>
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[600px]">
                 <div className="lg:col-span-8 h-full"><IntakeQueueTable students={students.filter(s => !s.assignedMentor)} selectedIds={selectedStudentIds} onToggleSelect={(id: string) => setSelectedStudentIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; })} onAssign={handleAssignClick} onAssignSelected={handleBulkAssign} /></div>
                 <div className="lg:col-span-4 h-full"><MentorPanel mentors={safeMentors} selectedMentorId={selectedMentorId} onSelectMentor={setSelectedMentorId} selectedStudentCount={selectedStudentIds.size} onAssign={handleBulkAssign} onViewProfile={handleNavigateToMentor} /></div>
