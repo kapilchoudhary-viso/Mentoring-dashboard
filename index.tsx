@@ -706,6 +706,103 @@ const AuditTable: React.FC<{ logs: AuditLog[] }> = ({ logs }) => (
   </div>
 );
 
+const BatchReassignmentModal = ({ isOpen, onClose, currentMentor, batchName, program, batchStudents, mentors, onConfirm }: any) => {
+  const [selectedMentorId, setSelectedMentorId] = useState('');
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedMentorId('');
+      setError('');
+    }
+  }, [isOpen]);
+
+  if (!isOpen || !currentMentor || !batchStudents) return null;
+
+  // Filter compatible mentors
+  const compatibleMentors = mentors.filter((m: any) =>
+    m.id !== currentMentor.id &&
+    m.status !== 'Full' &&
+    m.status !== 'Left' &&
+    (m.allocatedPrograms || []).includes(program) &&
+    (!m.allocatedBatches || m.allocatedBatches.length === 0 || m.allocatedBatches.includes(batchName))
+  );
+
+  const handleConfirm = () => {
+    if (!selectedMentorId) {
+      setError('Please select a mentor');
+      return;
+    }
+    onConfirm(selectedMentorId);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-lg flex flex-col overflow-hidden">
+        <div className="px-6 py-4 border-b bg-indigo-50 flex justify-between items-center">
+          <div>
+            <h2 className="text-xl font-bold text-indigo-900">Reassign Batch</h2>
+            <p className="text-sm text-indigo-600 mt-1">
+              Moving {batchStudents.length} students from {batchName}
+            </p>
+          </div>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">Close</button>
+        </div>
+
+        <div className="p-6 bg-gray-50">
+          <div className="bg-white border rounded-lg p-4 mb-4">
+            <div className="text-sm text-gray-500 mb-1">Current Mentor</div>
+            <div className="font-bold text-gray-900">{currentMentor.name}</div>
+            <div className="text-xs text-gray-500 mt-1">{program} • {batchName}</div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Select New Mentor <span className="text-red-500">*</span>
+            </label>
+            <select
+              className="w-full border rounded-lg p-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+              value={selectedMentorId}
+              onChange={(e) => { setSelectedMentorId(e.target.value); setError(''); }}
+            >
+              <option value="">Choose a mentor...</option>
+              {compatibleMentors.map((m: any) => (
+                <option key={m.id} value={m.id}>
+                  {m.name} ({m.currentLoad}/{m.capacity} Load)
+                </option>
+              ))}
+            </select>
+            {error && <p className="text-red-600 text-xs mt-1">{error}</p>}
+            {compatibleMentors.length === 0 && (
+              <p className="text-yellow-600 text-xs mt-2">⚠️ No compatible mentors available for this program/batch.</p>
+            )}
+          </div>
+
+          <div className="mt-4 bg-blue-50 border border-blue-200 rounded p-3">
+            <p className="text-xs text-blue-800">
+              <strong>Note:</strong> All {batchStudents.length} students in {batchName} will be transferred to the selected mentor.
+            </p>
+          </div>
+        </div>
+
+        <div className="p-4 border-t bg-gray-50 flex justify-end gap-3">
+          <button onClick={onClose} className="px-4 py-2 border rounded text-gray-700 hover:bg-gray-100">Cancel</button>
+          <button
+            onClick={handleConfirm}
+            disabled={!selectedMentorId}
+            className={`px-4 py-2 rounded font-medium ${selectedMentorId
+              ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+          >
+            Confirm Reassignment
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const MentorOffboardingModal = ({ isOpen, onClose, mentor, students, mentors, onConfirm }: any) => {
   if (!isOpen || !mentor) return null;
 
@@ -948,6 +1045,10 @@ const MentorDirectoryView: React.FC<{ mentors: Mentor[], students: Student[], in
   // Offboarding State
   const [showOffboardingModal, setShowOffboardingModal] = useState(false);
 
+  // Batch Reassignment State
+  const [showBatchReassignModal, setShowBatchReassignModal] = useState(false);
+  const [batchToReassign, setBatchToReassign] = useState<{ program: string, batch: string, students: Student[] } | null>(null);
+
   const toggleBatch = (batchKey: string) => {
     setExpandedBatches(prev => {
       const newSet = new Set(prev);
@@ -1027,6 +1128,32 @@ const MentorDirectoryView: React.FC<{ mentors: Mentor[], students: Student[], in
 
     // Optional: Auto-close profile?
     // setSelectedMentor(null);
+  };
+
+  const handleBatchReassign = (program: string, batch: string, batchStudents: Student[]) => {
+    setBatchToReassign({ program, batch, students: batchStudents });
+    setShowBatchReassignModal(true);
+  };
+
+  const handleBatchReassignConfirm = (targetMentorId: string) => {
+    if (!batchToReassign || !selectedMentor) return;
+
+    const targetMentor = mentors.find(m => m.id === targetMentorId);
+    if (!targetMentor) return;
+
+    console.log(`Reassigning batch ${batchToReassign.batch} from ${selectedMentor.name} to ${targetMentor.name}`);
+
+    // Update all students in the batch
+    batchToReassign.students.forEach(student => {
+      student.assignedMentor = targetMentor.name;
+    });
+
+    // Close modal
+    setShowBatchReassignModal(false);
+    setBatchToReassign(null);
+
+    // Optionally refresh the view or show success message
+    console.log('Batch reassignment complete');
   };
 
   const addDepartment = () => {
@@ -1221,18 +1348,31 @@ const MentorDirectoryView: React.FC<{ mentors: Mentor[], students: Student[], in
                     return (
                       <div key={batch} className="border border-gray-200 rounded-lg overflow-hidden">
                         <div
-                          className="px-4 py-3 bg-gray-50 flex justify-between items-center cursor-pointer hover:bg-gray-100"
-                          onClick={() => toggleBatch(batchKey)}
+                          className="px-4 py-3 bg-gray-50 flex justify-between items-center hover:bg-gray-100"
                         >
-                          <div className="flex items-center space-x-3">
+                          <div className="flex items-center space-x-3 cursor-pointer flex-1" onClick={() => toggleBatch(batchKey)}>
                             <h4 className="font-semibold text-gray-900">{batch}</h4>
                             <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs rounded-full font-medium">
                               {batchStudents.length} students
                             </span>
                           </div>
-                          <button className="text-indigo-600 text-sm font-medium hover:text-indigo-800">
-                            {isExpanded ? 'Hide Student List' : 'Show Student List'}
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleBatchReassign(program, batch, batchStudents);
+                              }}
+                              className="px-3 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50 rounded border border-indigo-200"
+                            >
+                              Reassign
+                            </button>
+                            <button
+                              onClick={() => toggleBatch(batchKey)}
+                              className="text-indigo-600 text-sm font-medium hover:text-indigo-800"
+                            >
+                              {isExpanded ? 'Hide Student List' : 'Show Student List'}
+                            </button>
+                          </div>
                         </div>
 
                         {isExpanded && (
@@ -1265,6 +1405,16 @@ const MentorDirectoryView: React.FC<{ mentors: Mentor[], students: Student[], in
             ))}
           </div>
         )}
+        <BatchReassignmentModal
+          isOpen={showBatchReassignModal}
+          onClose={() => setShowBatchReassignModal(false)}
+          currentMentor={selectedMentor}
+          batchName={batchToReassign?.batch || ''}
+          program={batchToReassign?.program || ''}
+          batchStudents={batchToReassign?.students || []}
+          mentors={mentors}
+          onConfirm={handleBatchReassignConfirm}
+        />
         <MentorOffboardingModal
           isOpen={showOffboardingModal}
           onClose={() => setShowOffboardingModal(false)}
