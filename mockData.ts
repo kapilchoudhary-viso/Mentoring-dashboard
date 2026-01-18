@@ -3500,7 +3500,8 @@ export const MENTORS: Mentor[] = [
     "allocatedPrograms": [
       "Foundation Course",
       "Lakshya"
-    ]
+    ],
+    "allocatedBatches": ["RB01_2026", "January 2026"]
   },
   {
     "id": "2",
@@ -3512,7 +3513,8 @@ export const MENTORS: Mentor[] = [
     "department": "Optional(Geography)",
     "allocatedPrograms": [
       "Foundation Course"
-    ]
+    ],
+    "allocatedBatches": ["RB01_2026"]
   },
   {
     "id": "3",
@@ -3524,7 +3526,8 @@ export const MENTORS: Mentor[] = [
     "department": "General Studies",
     "allocatedPrograms": [
       "Dakshya"
-    ]
+    ],
+    "allocatedBatches": ["February 2026", "March 2026"]
   },
   {
     "id": "4",
@@ -3537,7 +3540,8 @@ export const MENTORS: Mentor[] = [
     "allocatedPrograms": [
       "Lakshya",
       "Dakshya"
-    ]
+    ],
+    "allocatedBatches": ["March 2026", "February 2026"]
   },
   {
     "id": "5",
@@ -3549,7 +3553,8 @@ export const MENTORS: Mentor[] = [
     "department": "Optional(PSIR)",
     "allocatedPrograms": [
       "Foundation Course"
-    ]
+    ],
+    "allocatedBatches": ["RB01_2026", "January 2026"]
   },
   {
     "id": "6",
