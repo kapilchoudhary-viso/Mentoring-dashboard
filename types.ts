@@ -24,7 +24,7 @@ export interface Mentor {
     email: string;
     currentLoad: number;
     capacity: number;
-    status: 'Available' | 'Near Limit' | 'Full' | 'Left';
+    status: 'Available' | 'Near Limit' | 'Full' | 'Left' | 'On Leave';
     department: string;
     allocatedPrograms: string[];
     allocatedBatches?: string[];

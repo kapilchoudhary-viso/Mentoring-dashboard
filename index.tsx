@@ -1182,6 +1182,7 @@ const MentorDirectoryView: React.FC<{ mentors: Mentor[], students: Student[], in
                     <option value="Available">Available</option>
                     <option value="Near Limit">Near Limit</option>
                     <option value="Full">Full</option>
+                    <option value="On Leave">On Leave</option>
                     <option value="Left" className="text-red-600 font-bold">Left Organization</option>
                   </select>
                 </div>
